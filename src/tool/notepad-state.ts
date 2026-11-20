@@ -1,19 +1,15 @@
 import type { ToolState } from './types';
 import type { ToolConfig, ToolExporterDefinition } from '@itsjust/core';
 import toolConfig from './tool.config';
-
-export interface NotepadState {
-  content: string;
-  title?: string;
-}
+import { initialState } from './types';
 
 export const notepadTool = {
-  id: 'notepad',
-  name: 'Notepad',
+  id: 'cron-expression-explainer',
+  name: 'Cron Expression Explainer',
   version: '1.0.0',
   config: toolConfig as unknown as ToolConfig,
-  initialState: { content: '', title: '' } as NotepadState,
-  serialize: (state: NotepadState): string => JSON.stringify(state, null, 2),
+  initialState: { ...initialState } as ToolState,
+  serialize: (state: ToolState): string => JSON.stringify(state, null, 2),
   exporters: [
     { format: 'png', loader: () => import('./exporters/png') },
     { format: 'jpeg', loader: () => import('./exporters/jpeg') },
@@ -25,20 +21,20 @@ export const notepadTool = {
       if (
         typeof data === 'object' &&
         data !== null &&
-        typeof (data as { content?: unknown }).content === 'string'
+        typeof (data as { expression?: unknown }).expression === 'string'
       ) {
-        const d = data as { content: string; title?: unknown };
+        const d = data as { expression: string; error?: unknown };
         return {
           success: true as const,
           data: {
-            content: d.content,
-            title: typeof d.title === 'string' ? d.title : '',
-          } as NotepadState,
+            expression: d.expression,
+            error: typeof d.error === 'string' ? d.error : null,
+          } as ToolState,
         };
       }
       return {
         success: false as const,
-        error: 'Invalid data format: expected { content: string, title?: string }',
+        error: 'Invalid data format: expected { expression: string, error?: string | null }',
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Deserialization error';
